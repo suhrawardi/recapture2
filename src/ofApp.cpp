@@ -4,9 +4,9 @@ ofFbo fbo;
 ofShader shader;
 
 ofVideoPlayer video1;
-// ofVideoPlayer video2;
-ofVideoGrabber camera;
-ofxFaceTracker2 tracker;
+ofVideoPlayer video2;
+//ofVideoGrabber camera;
+//ofxFaceTracker2 tracker;
 ofSoundStream micInput;
 
 float soundLevel;
@@ -14,7 +14,7 @@ float elapsedTime;
 
 //--------------------------------------------------------------
 void ofApp::setup() {
-    tracker.setup();
+    //tracker.setup();
 
     shader.load("fragShader");
 
@@ -25,14 +25,15 @@ void ofApp::setup() {
     ofSetFrameRate(30);
     ofBackground(ofColor::white);
     
-    video1.load("twee.mov");
-//    video2.load("twee.mov");
+    video1.load("een.mov");
+    video2.load("twee.mov");
     video1.play();
-//    video2.play();
+    video2.play();
+    video1.setPosition(0.5);
     
-    camera.setDeviceID(0);
-    camera.setDesiredFrameRate(30);
-    camera.initGrabber(1280, 720);
+    //camera.setDeviceID(0);
+    //camera.setDesiredFrameRate(30);
+    //camera.initGrabber(1280, 720);
     
     soundLevel = 0.0;
     
@@ -52,14 +53,14 @@ void ofApp::setup() {
 //--------------------------------------------------------------
 void ofApp::update() {
     video1.update();
-    // video2.update();
-    if (camera.isInitialized()) {
-        camera.update();
+    video2.update();
+    //if (camera.isInitialized()) {
+        //camera.update();
         
-        if (camera.isFrameNew()) {
-            tracker.update(camera);
-        }
-    }
+        //if (camera.isFrameNew()) {
+        //    tracker.update(camera);
+        //}
+    //}
     
     elapsedTime = ofGetElapsedTimef();
 
@@ -70,49 +71,49 @@ void ofApp::update() {
 
 //--------------------------------------------------------------
 void ofApp::draw() {
-    if (camera.isInitialized()) {
-        shader.begin();
-        fbo.begin();
-        ofSetBackgroundAuto(false);
-        ofEnableAlphaBlending();
-        ofEnableBlendMode(OF_BLENDMODE_ALPHA);
-        ofDisableSmoothing();
+    //if (camera.isInitialized()) {
+    shader.begin();
+    fbo.begin();
+    ofSetBackgroundAuto(false);
+    ofEnableAlphaBlending();
+    ofEnableBlendMode(OF_BLENDMODE_ALPHA);
+    ofDisableSmoothing();
+    
+    shader.setUniformTexture("texture0", video1.getTexture(), 0);
+    shader.setUniformTexture("texture1", video2.getTexture(), 1);
+    
+    float alphaLevel = soundLevel * 50.0;
+    if (alphaLevel > 0.8) alphaLevel = 0.8;
+    if (alphaLevel < 0.4) alphaLevel = 0.4;
+    
+    // std::printf("sound %f\n", alphaLevel);
+    shader.setUniform1f("time", elapsedTime);
+    shader.setUniform1f("alpahVal", soundLevel);
         
-        shader.setUniformTexture("texture0", camera.getTexture(), 0);
-        shader.setUniformTexture("texture1", video1.getTexture(), 1);
-        
-        float alphaLevel = soundLevel * 50.0;
-        if (alphaLevel > 0.8) alphaLevel = 0.8;
-        if (alphaLevel < 0.4) alphaLevel = 0.4;
-        
-        // std::printf("sound %f\n", alphaLevel);
-        shader.setUniform1f("time", elapsedTime);
-        shader.setUniform1f("alpahVal", soundLevel);
-            
-        //ofEnableAlphaBlending();
-        video1.draw(0, 0, ofGetWidth(), ofGetHeight());
-        
-        camera.draw(0, 0, ofGetWidth(), ofGetHeight());
-        
-        for(auto face : tracker.getInstances()) {
-            // Apply the pose matrix
-            ofPushView();
-            face.loadPoseMatrix();
-            camera.draw(0, 0, ofGetWidth(), ofGetHeight());
-            ofPopView();
-        }
-        
-        //ofEnableAlphaBlending();
-                    
-        ofEnableSmoothing();
+    //ofEnableAlphaBlending();
+    video1.draw(0, 0, ofGetWidth(), ofGetHeight());
+    
+    video2.draw(0, 0, ofGetWidth(), ofGetHeight());
+    
+    //for(auto face : tracker.getInstances()) {
+        // Apply the pose matrix
+    //    ofPushView();
+    //    face.loadPoseMatrix();
+    //    video2.draw(0, 0, ofGetWidth(), ofGetHeight());
+    //    ofPopView();
+    //}
+    
+    //ofEnableAlphaBlending();
+                
+    ofEnableSmoothing();
 
-        fbo.end();
-        shader.end();
-            
-        fbo.draw(0, 0, ofGetWidth(), ofGetHeight());
-        // tracker.drawDebug();
-        // tracker.drawDebugPose();
-    }
+    fbo.end();
+    shader.end();
+        
+    fbo.draw(0, 0, ofGetWidth(), ofGetHeight());
+    // tracker.drawDebug();
+    // tracker.drawDebugPose();
+    //}
 }
 
 void ofApp::audioIn(ofSoundBuffer & buffer) {
