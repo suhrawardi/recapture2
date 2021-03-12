@@ -6,6 +6,7 @@ ofShader shader;
 ofVideoPlayer video1;
 // ofVideoPlayer video2;
 ofVideoGrabber camera;
+ofxFaceTracker2 tracker;
 ofSoundStream micInput;
 
 float soundLevel;
@@ -13,12 +14,14 @@ float elapsedTime;
 
 //--------------------------------------------------------------
 void ofApp::setup() {
+    tracker.setup();
+
     shader.load("fragShader");
 
     fbo.allocate(ofGetWidth(), ofGetHeight(), GL_RGBA);
     
     ofSetWindowTitle("Video thingies");
-    ofSetWindowShape(1280, 780);
+    ofSetWindowShape(1280, 720);
     ofSetFrameRate(30);
     ofBackground(ofColor::white);
     
@@ -50,7 +53,13 @@ void ofApp::setup() {
 void ofApp::update() {
     video1.update();
     // video2.update();
-    if (camera.isInitialized()) camera.update();
+    if (camera.isInitialized()) {
+        camera.update();
+        
+        if (camera.isFrameNew()) {
+            tracker.update(camera);
+        }
+    }
     
     elapsedTime = ofGetElapsedTimef();
 
@@ -80,18 +89,29 @@ void ofApp::draw() {
         shader.setUniform1f("time", elapsedTime);
         shader.setUniform1f("alpahVal", soundLevel);
             
-        video1.draw(0, 0, ofGetWidth(), ofGetHeight());
         //ofEnableAlphaBlending();
+        video1.draw(0, 0, ofGetWidth(), ofGetHeight());
         
         camera.draw(0, 0, ofGetWidth(), ofGetHeight());
+        
+        for(auto face : tracker.getInstances()) {
+            // Apply the pose matrix
+            ofPushView();
+            face.loadPoseMatrix();
+            camera.draw(0, 0, ofGetWidth(), ofGetHeight());
+            ofPopView();
+        }
+        
         //ofEnableAlphaBlending();
-            
+                    
         ofEnableSmoothing();
 
         fbo.end();
         shader.end();
             
         fbo.draw(0, 0, ofGetWidth(), ofGetHeight());
+        // tracker.drawDebug();
+        // tracker.drawDebugPose();
     }
 }
 
