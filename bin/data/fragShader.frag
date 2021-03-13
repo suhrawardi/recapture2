@@ -4,7 +4,6 @@
 
 uniform sampler2DRect texture0;
 uniform sampler2DRect texture1;
-uniform float alphaVal;
 uniform float time;
 
 float cnoise( vec3 P );
@@ -18,14 +17,12 @@ void main() {
   vec4 color0 = texture2DRect(texture0, pos);
   vec4 color1 = texture2DRect(texture1, pos);
 
-  float noiseVal = cnoise( vec3( pos.x * 0.013, pos.y * 0.015, time * 0.221 ) );
+  float noiseVal = cnoise( vec3( pos.x * 0.0013, pos.y * 0.0015, time * 0.721 ) );
 
   // Output the color of shader
-  // color0.a = (noiseVal * 0.5);
-  color0.a = noiseVal * 0.21;
+  color0.a = 0.47 + noiseVal * 0.487;
   color.rgb = mix(color1.rgb, color0.rgb, color0.a);
   color.a = color0.a;
-  // color.rgba = color0.rgba;
 
   gl_FragColor = color;
 }
